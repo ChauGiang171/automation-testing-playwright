@@ -11,6 +11,7 @@ class HomePage {
         this.searchInput = page.locator('#searchInput');
         this.searchBtn = page.locator('#searchBtn');
         this.categoryFilter = page.locator('#categoryFilter');
+        this.logoutBtn = page.locator('#logoutBtn');
     }
 
     async goto() {
