@@ -1,0 +1,9 @@
+# IDE
+.idea/
+
+# Playwright output
+test-results/
+playwright-report/
+
+# Node modules
+node_modules/
