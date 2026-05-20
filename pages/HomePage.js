@@ -1,0 +1,21 @@
+class HomePage {
+    constructor(page) {
+        this.page = page;
+        this.logo = page.locator('.logo');
+        this.cartCount = page.locator('#cartCount');
+        this.authArea = page.locator('#authArea');
+        this.heroTitle = page.locator('.hero h1');
+        this.heroSubtitle = page.locator('.hero p');
+        this.productGrid = page.locator('#productGrid');
+        this.productCards = page.locator('.product-card');
+        this.searchInput = page.locator('#searchInput');
+        this.searchBtn = page.locator('#searchBtn');
+        this.categoryFilter = page.locator('#categoryFilter');
+    }
+
+    async goto() {
+        await this.page.goto('/');
+    }
+}
+
+module.exports = { HomePage };
