@@ -95,4 +95,16 @@ test.describe('Homepage', () => {
     await expect(homePage.authArea.locator('text=Sign Up')).toBeVisible();
   });
 
+  test('should have add item to cart', async  ({ page }) => {
+    const homePage = new HomePage(page);
+    const addItem = homePage.addItemBtn.first();
+    await addItem.click();
+
+    await expect(homePage.toast).toBeVisible();
+    await expect(homePage.toast).toContainText('Added to cart');
+    await expect(homePage.cartCount).toBeVisible();
+    await expect(homePage.cartCount).toHaveText('1');
+
+  });
+
 });

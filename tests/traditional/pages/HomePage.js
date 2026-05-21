@@ -12,6 +12,9 @@ class HomePage {
         this.searchBtn = page.locator('#searchBtn');
         this.categoryFilter = page.locator('#categoryFilter');
         this.logoutBtn = page.locator('#logoutBtn');
+        this.addItemBtn = page.locator('.add-to-cart-btn');
+        this.toast = page.locator('#toast');
+        this.cartLink = page.locator('.cart-link');
     }
 
     async goto() {

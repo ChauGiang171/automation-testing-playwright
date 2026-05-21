@@ -1,8 +1,9 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-
+const { CartPage } = require('../pages/CartPage');
+const { HomePage } = require('../pages/HomePage');
 /**
- * Shopping Cart Tests
+ * Shopping Cart Test
  * Tests for cart functionality including add, update, and remove items
  */
 
@@ -16,67 +17,66 @@ test.describe('Shopping Cart', () => {
 
   test('should add item to cart', async ({ page }) => {
     // Click add to cart on first product
-    const addButton = page.locator('.add-to-cart-btn').first();
-    await addButton.click();
-    
+    const homePage = new HomePage(page);
+    const addItem = homePage.addItemBtn.first();
+    await addItem.click();
+
     // Verify toast message appears
-    const toast = page.locator('#toast');
-    await expect(toast).toContainText('Added to cart');
+    await expect(homePage.toast).toBeVisible();
+    await expect(homePage.toast).toContainText('Added to cart');
     
     // Verify cart count updates
-    const cartCount = page.locator('#cartCount').first();
-    await expect(cartCount).toHaveText('1');
+    await expect(homePage.cartCount).toBeVisible();
+    await expect(homePage.cartCount).toHaveText('1');
   });
 
   test('should navigate to cart page', async ({ page }) => {
-    // Add item first
-    await page.locator('.add-to-cart-btn').first().click();
-    await page.waitForTimeout(500);
-    
-    // Click on cart link
-    await page.locator('.cart-link').first().click();
-    
-    // Verify we're on cart page
+    const homePage = new HomePage(page);
+    await homePage.addItemBtn.first().click();
+
+    // Wait Cart update
+    await expect(homePage.cartCount).toHaveText('1');
+
+    // Click cart link on navbar
+    await homePage.cartLink.first().click();
+
+    // Verify cart page
+    const cartPage = new CartPage(page);
     await expect(page).toHaveURL('/cart.html');
-    await expect(page.locator('h1')).toHaveText('Your Shopping Cart');
+    await expect(cartPage.title).toHaveText('Your Shopping Cart');
   });
 
   test('should display cart items correctly', async ({ page }) => {
     // Add item via API for consistency
+    const cartPage = new CartPage(page);
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 2 }
     });
     
     // Navigate to cart
-    await page.goto('/cart.html');
+    await cartPage.goto();
     
     // Verify cart item is displayed
-    const cartItem = page.locator('.cart-item');
-    await expect(cartItem).toHaveCount(1);
+    await expect(cartPage.cartItems).toHaveCount(1);
     
     // Verify quantity is correct
-    const qtyValue = page.locator('.qty-value');
-    await expect(qtyValue).toHaveText('2');
+    await expect(cartPage.qtyValue).toHaveText('2');
   });
 
   test('should update item quantity', async ({ page }) => {
     // Add item first
+    const cartPage = new CartPage(page);
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 1 }
     });
     
-    await page.goto('/cart.html');
+    await cartPage.goto();
     
     // Click increase quantity button
-    const increaseBtn = page.locator('.qty-btn').nth(1); // Second button is +
-    await increaseBtn.click();
-    
-    // Wait for update
-    await page.waitForTimeout(500);
-    
-    // Verify quantity increased
-    const qtyValue = page.locator('.qty-value');
-    await expect(qtyValue).toHaveText('2');
+    await cartPage.qtyIncreaseBtn.click();
+
+    // Wait for update & Verify quantity increased
+    await expect(cartPage.qtyValue).toHaveText('2');
   });
 
   test('should remove item from cart', async ({ page }) => {
@@ -84,22 +84,19 @@ test.describe('Shopping Cart', () => {
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 1 }
     });
-    
-    await page.goto('/cart.html');
+
+    const cartPage = new CartPage(page);
+    await cartPage.goto();
     
     // Click remove button
-    const removeBtn = page.locator('.remove-btn');
-    await removeBtn.click();
-    
-    // Wait for removal
-    await page.waitForTimeout(500);
-    
-    // Verify empty cart message appears
-    const emptyCart = page.locator('#emptyCart');
-    await expect(emptyCart).toBeVisible();
+    await cartPage.removeBtn.click();
+
+    // Wait for removal & Verify empty cart message appears
+    await expect(cartPage.emptyCart).toBeVisible();
   });
 
   test('should clear entire cart', async ({ page }) => {
+    const cartPage = new CartPage(page);
     // Add multiple items
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 1 }
@@ -108,18 +105,13 @@ test.describe('Shopping Cart', () => {
       data: { productId: 2, quantity: 1 }
     });
     
-    await page.goto('/cart.html');
-    
+    await cartPage.goto();
+
     // Click clear cart button
-    const clearBtn = page.locator('#clearCartBtn');
-    await clearBtn.click();
-    
-    // Wait for clear
-    await page.waitForTimeout(500);
-    
-    // Verify cart is empty
-    const emptyCart = page.locator('#emptyCart');
-    await expect(emptyCart).toBeVisible();
+    await cartPage.clearCartBtn.click();
+
+    // Wait for clear & Verify cart is empty
+    await expect(cartPage.emptyCart).toBeVisible();
   });
 
   test('should calculate correct totals', async ({ page }) => {
@@ -131,21 +123,20 @@ test.describe('Shopping Cart', () => {
     await page.goto('/cart.html');
     
     // Verify total (2 × $79.99 = $159.98)
-    const total = page.locator('#total');
-    await expect(total).toContainText('159.98');
+    const cartPage = new CartPage(page);
+    await expect(cartPage.total).toContainText('159.98');
   });
 
   test('should show empty cart message when cart is empty', async ({ page }) => {
     await page.goto('/cart.html');
     
     // Verify empty cart elements are visible
-    const emptyCart = page.locator('#emptyCart');
-    await expect(emptyCart).toBeVisible();
-    await expect(emptyCart).toContainText('Your cart is empty');
+    const cartPage = new CartPage(page);
+    await expect(cartPage.emptyCart).toBeVisible();
+    await expect(cartPage.emptyCart).toContainText('Your cart is empty');
     
     // Verify "Start Shopping" button exists
-    const startShoppingBtn = emptyCart.locator('text=Start Shopping');
-    await expect(startShoppingBtn).toBeVisible();
+    await expect(cartPage.startShoppingBtn).toBeVisible();
   });
 
 });
