@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { HomePage } = require('../../../pages/HomePage'); // extend '/pages/HomePage' to get elements locator
+const { HomePage } = require('../pages/HomePage'); // extend '/pages/HomePage' to get elements locator
 /**
  * Homepage Test
  * Tests for the main landing page of TechMart

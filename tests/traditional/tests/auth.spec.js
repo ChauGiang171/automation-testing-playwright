@@ -1,8 +1,8 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const {LoginPage} = require('../../../pages/LoginPage');
-const {RegisterPage} = require('../../../pages/RegisterPage');
-const {HomePage} = require('../../../pages/HomePage');
+const {LoginPage} = require('../pages/LoginPage');
+const {RegisterPage} = require('../pages/RegisterPage');
+const {HomePage} = require('../pages/HomePage');
 /**
  * Authentication Test
  * Tests for login, registration, and logout functionality
