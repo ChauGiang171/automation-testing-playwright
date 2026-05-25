@@ -2,7 +2,7 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * API Tests
+ * API Test
  * Tests for the TechMart REST API endpoints
  */
 
@@ -15,7 +15,7 @@ test.describe('API Tests', () => {
     test('GET /api/products should return all products', async ({ request }) => {
       const response = await request.get(`${BASE_URL}/api/products`);
       
-      expect(response.ok()).toBeTruthy();
+      expect(response.ok()).toBeTruthy(); //status code 200-299
       expect(response.status()).toBe(200);
       
       const products = await response.json();

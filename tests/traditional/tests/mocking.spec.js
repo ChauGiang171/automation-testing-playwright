@@ -1,8 +1,10 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const {HomePage} = require("../pages/HomePage");
+const {CartPage} = require("../pages/CartPage");
 
 /**
- * Mocking Tests
+ * Mocking Test
  * Tests using intercepted API responses to simulate edge cases
  */
 
@@ -17,12 +19,12 @@ test.describe('Mocking API Responses', () => {
         body: JSON.stringify({ error: 'Internal server error' })
       });
     });
-    
-    await page.goto('/');
+
+    const homePage = new HomePage(page);
+    await homePage.goto();
     
     // The product grid should be empty
-    const productCards = page.locator('.product-card');
-    await expect(productCards).toHaveCount(0);
+    await expect(homePage.productCards).toHaveCount(0);
   });
 
   test('should handle slow API responses gracefully', async ({ page }) => {
@@ -31,16 +33,16 @@ test.describe('Mocking API Responses', () => {
       await new Promise(resolve => setTimeout(resolve, 3000));
       route.continue();
     });
-    
-    await page.goto('/');
+
+    const homePage = new HomePage(page);
+    await homePage.goto();
     
     // Page should still be usable during loading
-    await expect(page.locator('.logo')).toBeVisible();
-    await expect(page.locator('#searchInput')).toBeVisible();
+    await expect(homePage.logo).toBeVisible();
+    await expect(homePage.searchInput).toBeVisible();
     
     // Products should eventually appear
-    const productCards = page.locator('.product-card');
-    await expect(productCards).toHaveCount(6, { timeout: 10000 });
+    await expect(homePage.productCards).toHaveCount(6, { timeout: 10000 });
   });
 
   test('should display out-of-stock correctly', async ({ page }) => {
@@ -63,19 +65,20 @@ test.describe('Mocking API Responses', () => {
       });
     });
 
-    await page.goto('/');
+    const homePage = new HomePage(page);
+    await homePage.goto();
 
     // Should display 2 products
-    const productCards = page.locator('.product-card');
-    await expect(productCards).toHaveCount(2);
+    await expect(homePage.productCards).toHaveCount(2);
 
     // First product should show out of stock indicator
-    const outOfStockProduct = page.locator('.product-card').filter({hasText: 'Wireless Headphones'});
+    const outOfStockProduct = homePage.productCards.filter({hasText: 'Wireless Headphones'});
     await expect(outOfStockProduct.locator('.product-stock')).toContainText(/out of stock|0/i);
   });
 
   test('should handle add-to-cart failure', async ({ page }) => {
-    await page.goto('/');
+    const homePage = new HomePage(page);
+    await homePage.goto();
     
     // Let the page load normally, then intercept cart POST
     await page.route('**/api/cart', route => {
@@ -91,11 +94,10 @@ test.describe('Mocking API Responses', () => {
     });
     
     // Try to add an item
-    await page.locator('.add-to-cart-btn').first().click();
+    await homePage.addItemBtn.first().click();
     
     // Should show error feedback
-    const toast = page.locator('#toast');
-    await expect(toast).toBeVisible();
+    await expect(homePage.toast).toBeVisible();
   });
 
   test('should handle network timeout', async ({ page }) => {
@@ -103,15 +105,15 @@ test.describe('Mocking API Responses', () => {
     await page.route('**/api/products*', route => {
       route.abort('timedout');
     });
-    
-    await page.goto('/');
+
+    const homePage = new HomePage(page);
+    await homePage.goto();
     
     // Page structure should still render
-    await expect(page.locator('.logo')).toBeVisible();
+    await expect(homePage.logo).toBeVisible();
     
     // No products should display
-    const productCards = page.locator('.product-card');
-    await expect(productCards).toHaveCount(0);
+    await expect(homePage.productCards).toHaveCount(0);
   });
 
 });

@@ -2,7 +2,7 @@
 const { test, expect } = require('@playwright/test');
 
 /**
- * Accessibility Tests
+ * Accessibility Test
  * Tests for common accessibility issues
  */
 
