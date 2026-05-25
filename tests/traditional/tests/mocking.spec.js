@@ -50,21 +50,28 @@ test.describe('Mocking API Responses', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([
-          { id: 1, name: 'Wireless Headphones', price: 79.99, category: 'electronics', image: 'headphones.svg', stock: 0 },
-          { id: 2, name: 'Mechanical Keyboard', price: 129.99, category: 'electronics', image: 'keyboard.svg', stock: 8 }
+          {
+            id: 1,
+            name: 'Wireless Headphones',
+            price: 79.99,
+            category: 'electronics',
+            image: 'headphones.svg',
+            stock: 0
+          },
+          {id: 2, name: 'Mechanical Keyboard', price: 129.99, category: 'electronics', image: 'keyboard.svg', stock: 8}
         ])
       });
     });
-    
+
     await page.goto('/');
-    
+
     // Should display 2 products
     const productCards = page.locator('.product-card');
     await expect(productCards).toHaveCount(2);
-    
+
     // First product should show out of stock indicator
-    const firstProduct = productCards.first();
-    await expect(firstProduct.locator('.product-stock')).toContainText(/out of stock|0/i);
+    const outOfStockProduct = page.locator('.product-card').filter({hasText: 'Wireless Headphones'});
+    await expect(outOfStockProduct.locator('.product-stock')).toContainText(/out of stock|0/i);
   });
 
   test('should handle add-to-cart failure', async ({ page }) => {

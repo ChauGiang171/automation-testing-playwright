@@ -15,12 +15,15 @@ test.describe('Checkout', () => {
     await page.request.delete('http://localhost:3000/api/cart');
 
     //Add item into transaction
-    await page.request.post('http://localhost:3000/api/cart', {
+    const res1 = await page.request.post('http://localhost:3000/api/cart', {
+      data: { productId: 1, quantity: 1 }
+    });
+    expect(res1.ok()).toBeTruthy();
+
+    const res2 = await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 3, quantity: 1 }
     });
-    await page.request.post('http://localhost:3000/api/cart', {
-      data: { productId: 4, quantity: 2 }
-    });
+    expect(res2.ok()).toBeTruthy();
   });
 
   test('should redirect to cart if cart is empty', async ({ page }) => {
@@ -69,7 +72,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.subtotal).toBeVisible();
     await expect(checkoutPage.tax).toBeVisible();
     await expect(checkoutPage.total).toBeVisible();
-    await expect(checkoutPage.total).toContainText('$248.37');
+    await expect(checkoutPage.total).toContainText('$140.38');
   });
 
   test('should calculate tax correctly', async ({ page }) => {
@@ -79,7 +82,7 @@ test.describe('Checkout', () => {
     // Product 1 is $129,99, Product 2 is $88,99 (qty 2 => $179,98)
     // Tax is 8%
     // Tax should be $27,20 (rounded)
-    await expect(checkoutPage.tax).toContainText('$18.40');
+    await expect(checkoutPage.tax).toContainText('$10.40');
   });
 
   test('should format card number with spaces', async ({ page }) => {
