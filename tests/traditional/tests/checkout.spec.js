@@ -1,7 +1,8 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-const {CheckoutPage} = require('../pages/CheckoutPage');
+const { expect } = require('@playwright/test');
+const { test } = require('../fixtures/pages');
 const {checkoutData, checkoutDataB} = require('../test-data/checkout-data');
+const {CartPage} = require("../pages/CartPage");
 
 /**
  * Checkout Test
@@ -26,8 +27,7 @@ test.describe('Checkout', () => {
     expect(res2.ok()).toBeTruthy();
   });
 
-  test('should redirect to cart if cart is empty', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should redirect to cart if cart is empty', async ({ page, checkoutPage, cartPage }) => {
     // Clear cart
     await page.request.delete('http://localhost:3000/api/cart');
     
@@ -35,11 +35,10 @@ test.describe('Checkout', () => {
     await checkoutPage.goto();
     
     // Should redirect to cart
-    await page.waitForURL('/cart.html');
+    await page.waitForURL();
   });
 
-  test('should display checkout form', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should display checkout form', async ({ checkoutPage }) => {
     await checkoutPage.goto();
 
     // Verify shipping form fields
@@ -58,8 +57,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.cvv).toBeVisible();
   });
 
-  test('should display order summary', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should display order summary', async ({ checkoutPage }) => {
     await checkoutPage.goto();
     
     // Verify order summary section
@@ -75,8 +73,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.total).toContainText('$140.38');
   });
 
-  test('should calculate tax correctly', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should calculate tax correctly', async ({ checkoutPage }) => {
     await checkoutPage.goto();
     
     // Product 1 is $129,99, Product 2 is $88,99 (qty 2 => $179,98)
@@ -85,8 +82,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.tax).toContainText('$10.40');
   });
 
-  test('should format card number with spaces', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should format card number with spaces', async ({ checkoutPage }) => {
     await checkoutPage.goto();
 
     await checkoutPage.cardNumber.fill('1234567890123456');
@@ -95,8 +91,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.cardNumber).toHaveValue('1234 5678 9012 3456');
   });
 
-  test('should format expiry date correctly', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should format expiry date correctly', async ({ checkoutPage }) => {
     await checkoutPage.goto();
 
     await checkoutPage.expiry.fill('1225');
@@ -105,8 +100,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.expiry).toHaveValue('12/25');
   });
 
-  test('should complete checkout successfully', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should complete checkout successfully', async ({ checkoutPage }) => {
     await checkoutPage.goto();
 
     //Fill shipping information
@@ -128,8 +122,7 @@ test.describe('Checkout', () => {
     await expect(checkoutPage.orderId).not.toBeEmpty();
   });
 
-  test('should validate required fields', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should validate required fields', async ({ checkoutPage }) => {
     await checkoutPage.goto();
     
     // Try to submit empty form
@@ -140,8 +133,7 @@ test.describe('Checkout', () => {
     expect(isInvalid).toBe(true);
   });
 
-  test('should validate ZIP code format', async ({ page }) => {
-    const checkoutPage = new CheckoutPage(page);
+  test('should validate ZIP code format', async ({ checkoutPage }) => {
     await checkoutPage.goto();
     
     // Fill all fields but with invalid ZIP

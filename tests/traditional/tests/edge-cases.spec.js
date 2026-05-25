@@ -1,10 +1,6 @@
 // @ts-check
-const { test, expect, request} = require('@playwright/test');
-const { HomePage } = require('../pages/HomePage');
-const { CartPage } = require('../pages/CartPage');
-const { LoginPage } = require('../pages/LoginPage');
-const { RegisterPage } = require('../pages/RegisterPage');
-const { CheckoutPage } = require('../pages/CheckoutPage');
+const { expect } = require('@playwright/test');
+const { test } = require('../fixtures/pages');
 
 /**
  * Edge Cases Test
@@ -23,8 +19,7 @@ test.describe('Edge Cases', () => {
 
   // --- SEARCH EDGE CASES ---
 
-  test('should handle empty search gracefully', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should handle empty search gracefully', async ({ homePage }) => {
     
     // Click search without typing anything
     await homePage.searchBtn.click();
@@ -35,8 +30,7 @@ test.describe('Edge Cases', () => {
     await expect(homePage.productCards).toHaveCount(totalItem);
   });
 
-  test('should show no results for nonsense search', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should show no results for nonsense search', async ({ homePage }) => {
     
     await homePage.searchInput.fill('xyznonexistent123');
     await homePage.searchBtn.click();
@@ -44,8 +38,7 @@ test.describe('Edge Cases', () => {
     await expect(homePage.productCards).toHaveCount(0);
   });
 
-  test('should handle special characters in search', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should handle special characters in search', async ({ homePage }) => {
     
     // Try special characters that could break things
     await homePage.searchInput.fill('<script>alert("xss")</script>');
@@ -59,9 +52,7 @@ test.describe('Edge Cases', () => {
 
   });
 
-  test('should handle search with only whitespace', async ({ page }) => {
-    const homePage = new HomePage(page);
-    
+  test('should handle search with only whitespace', async ({ homePage }) => {
     await homePage.searchInput.fill(' ');
     await homePage.searchBtn.click();
     
@@ -72,9 +63,7 @@ test.describe('Edge Cases', () => {
 
   // --- CART EDGE CASES ---
 
-  test('should handle adding same product multiple times', async ({ page }) => {
-    const homePage = new HomePage(page);
-
+  test('should handle adding same product multiple times', async ({ homePage }) => {
     // Click add to cart three times
     await homePage.addItemBtn.first().click();
     await homePage.addItemBtn.first().click();
@@ -98,8 +87,7 @@ test.describe('Edge Cases', () => {
 
   // --- FORM VALIDATION EDGE CASES ---
 
-  test('should require all fields for registration', async ({ page }) => {
-    const registerPage = new RegisterPage(page);
+  test('should require all fields for registration', async ({ page, registerPage }) => {
     await registerPage.goto();
     
     // Try to submit with only email filled
@@ -110,8 +98,7 @@ test.describe('Edge Cases', () => {
     await expect(page).toHaveURL(/register/);
   });
 
-  test('should reject duplicate email registration', async ({ page }) => {
-    const registerPage = new RegisterPage(page);
+  test('should reject duplicate email registration', async ({ registerPage }) => {
     await registerPage.goto();
     
     // Try to register with the demo account email
@@ -128,19 +115,16 @@ test.describe('Edge Cases', () => {
 
   // --- NAVIGATION EDGE CASES ---
 
-  test('should handle direct URL access to cart page', async ({ page }) => {
+  test('should handle direct URL access to cart page', async ({ cartPage, homePage }) => {
     // Navigate directly to cart without adding anything
-    const cartPage = new CartPage(page);
     await cartPage.goto();
     
     // Should show empty cart state
-    const homePage = new HomePage(page);
     await expect(homePage.logo).toBeVisible();
   });
 
-  test('should preserve cart across page navigation', async ({ page }) => {
+  test('should preserve cart across page navigation', async ({ page, homePage }) => {
     // Add item to cart
-    const homePage = new HomePage(page);
     await homePage.addItemBtn.first().click();
     
     // Navigate away and back

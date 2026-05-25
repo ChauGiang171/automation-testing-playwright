@@ -1,7 +1,6 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-const {HomePage} = require("../pages/HomePage");
-const {CartPage} = require("../pages/CartPage");
+const { expect } = require('@playwright/test');
+const { test } = require('../fixtures/pages');
 
 /**
  * Mocking Test
@@ -10,7 +9,7 @@ const {CartPage} = require("../pages/CartPage");
 
 test.describe('Mocking API Responses', () => {
 
-  test('should display error state when API fails', async ({ page }) => {
+  test('should display error state when API fails', async ({ page, homePage }) => {
     // Intercept the products API and return an error
     await page.route('**/api/products*', route => {
       route.fulfill({
@@ -20,21 +19,19 @@ test.describe('Mocking API Responses', () => {
       });
     });
 
-    const homePage = new HomePage(page);
     await homePage.goto();
     
     // The product grid should be empty
     await expect(homePage.productCards).toHaveCount(0);
   });
 
-  test('should handle slow API responses gracefully', async ({ page }) => {
+  test('should handle slow API responses gracefully', async ({ page, homePage }) => {
     // Intercept products API and add a 3-second delay
     await page.route('**/api/products*', async route => {
       await new Promise(resolve => setTimeout(resolve, 3000));
       route.continue();
     });
 
-    const homePage = new HomePage(page);
     await homePage.goto();
     
     // Page should still be usable during loading
@@ -45,7 +42,7 @@ test.describe('Mocking API Responses', () => {
     await expect(homePage.productCards).toHaveCount(6, { timeout: 10000 });
   });
 
-  test('should display out-of-stock correctly', async ({ page }) => {
+  test('should display out-of-stock correctly', async ({ page, homePage }) => {
     // Return products where one has zero stock
     await page.route('**/api/products*', route => {
       route.fulfill({
@@ -65,7 +62,6 @@ test.describe('Mocking API Responses', () => {
       });
     });
 
-    const homePage = new HomePage(page);
     await homePage.goto();
 
     // Should display 2 products
@@ -76,8 +72,7 @@ test.describe('Mocking API Responses', () => {
     await expect(outOfStockProduct.locator('.product-stock')).toContainText(/out of stock|0/i);
   });
 
-  test('should handle add-to-cart failure', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should handle add-to-cart failure', async ({ page, homePage }) => {
     await homePage.goto();
     
     // Let the page load normally, then intercept cart POST
@@ -100,13 +95,12 @@ test.describe('Mocking API Responses', () => {
     await expect(homePage.toast).toBeVisible();
   });
 
-  test('should handle network timeout', async ({ page }) => {
+  test('should handle network timeout', async ({ page, homePage }) => {
     // Abort the request to simulate network failure
     await page.route('**/api/products*', route => {
       route.abort('timedout');
     });
 
-    const homePage = new HomePage(page);
     await homePage.goto();
     
     // Page structure should still render

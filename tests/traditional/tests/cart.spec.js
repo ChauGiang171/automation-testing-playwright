@@ -1,7 +1,6 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-const { CartPage } = require('../pages/CartPage');
-const { HomePage } = require('../pages/HomePage');
+const { expect } = require('@playwright/test');
+const { test } = require('../fixtures/pages');
 /**
  * Shopping Cart Test
  * Tests for cart functionality including add, update, and remove items
@@ -9,15 +8,14 @@ const { HomePage } = require('../pages/HomePage');
 
 test.describe('Shopping Cart', () => {
   
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, homePage }) => {
     // Clear cart before each test via API
     await page.request.delete('http://localhost:3000/api/cart');
-    await page.goto('/');
+    await homePage.goto();
   });
 
-  test('should add item to cart', async ({ page }) => {
+  test('should add item to cart', async ({ homePage }) => {
     // Click add to cart on first product
-    const homePage = new HomePage(page);
     const addItem = homePage.addItemBtn.first();
     await addItem.click();
 
@@ -30,8 +28,7 @@ test.describe('Shopping Cart', () => {
     await expect(homePage.cartCount).toHaveText('1');
   });
 
-  test('should navigate to cart page', async ({ page }) => {
-    const homePage = new HomePage(page);
+  test('should navigate to cart page', async ({ page, homePage, cartPage }) => {
     await homePage.addItemBtn.first().click();
 
     // Wait Cart update
@@ -41,14 +38,12 @@ test.describe('Shopping Cart', () => {
     await homePage.cartLink.first().click();
 
     // Verify cart page
-    const cartPage = new CartPage(page);
     await expect(page).toHaveURL('/cart.html');
     await expect(cartPage.title).toHaveText('Your Shopping Cart');
   });
 
-  test('should display cart items correctly', async ({ page }) => {
+  test('should display cart items correctly', async ({ page, cartPage}) => {
     // Add item via API for consistency
-    const cartPage = new CartPage(page);
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 2 }
     });
@@ -63,9 +58,8 @@ test.describe('Shopping Cart', () => {
     await expect(cartPage.qtyValue).toHaveText('2');
   });
 
-  test('should update item quantity', async ({ page }) => {
+  test('should update item quantity', async ({ page, cartPage }) => {
     // Add item first
-    const cartPage = new CartPage(page);
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 1 }
     });
@@ -79,13 +73,12 @@ test.describe('Shopping Cart', () => {
     await expect(cartPage.qtyValue).toHaveText('2');
   });
 
-  test('should remove item from cart', async ({ page }) => {
+  test('should remove item from cart', async ({ page, cartPage }) => {
     // Add item first
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 1 }
     });
 
-    const cartPage = new CartPage(page);
     await cartPage.goto();
     
     // Click remove button
@@ -95,8 +88,7 @@ test.describe('Shopping Cart', () => {
     await expect(cartPage.emptyCart).toBeVisible();
   });
 
-  test('should clear entire cart', async ({ page }) => {
-    const cartPage = new CartPage(page);
+  test('should clear entire cart', async ({ page, cartPage }) => {
     // Add multiple items
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 1 }
@@ -114,24 +106,22 @@ test.describe('Shopping Cart', () => {
     await expect(cartPage.emptyCart).toBeVisible();
   });
 
-  test('should calculate correct totals', async ({ page }) => {
+  test('should calculate correct totals', async ({ page, cartPage }) => {
     // Add item with known price ($79.99 for product 1)
     await page.request.post('http://localhost:3000/api/cart', {
       data: { productId: 1, quantity: 2 }
     });
     
-    await page.goto('/cart.html');
+    await cartPage.goto('/cart.html');
     
     // Verify total (2 × $79.99 = $159.98)
-    const cartPage = new CartPage(page);
     await expect(cartPage.total).toContainText('159.98');
   });
 
-  test('should show empty cart message when cart is empty', async ({ page }) => {
-    await page.goto('/cart.html');
+  test('should show empty cart message when cart is empty', async ({ page, cartPage }) => {
+    await cartPage.goto();
     
     // Verify empty cart elements are visible
-    const cartPage = new CartPage(page);
     await expect(cartPage.emptyCart).toBeVisible();
     await expect(cartPage.emptyCart).toContainText('Your cart is empty');
     

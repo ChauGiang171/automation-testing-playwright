@@ -1,8 +1,6 @@
 // @ts-check
-const { test, expect } = require('@playwright/test');
-const {LoginPage} = require('../pages/LoginPage');
-const {RegisterPage} = require('../pages/RegisterPage');
-const {HomePage} = require('../pages/HomePage');
+const { expect } = require('@playwright/test');
+const { test } = require('../fixtures/pages');
 /**
  * Authentication Test
  * Tests for login, registration, and logout functionality
@@ -12,22 +10,19 @@ test.describe('Authentication', () => {
 
   test.describe('Login', () => {
     
-    test.beforeEach(async ({ page }) => {
-      const loginPage = new LoginPage(page)
+    test.beforeEach(async ({ page, loginPage }) => {
       await loginPage.goto();
     });
 
-    test('should display login form', async ({ page }) => {
-      const loginPage = new LoginPage(page);
+    test('should display login form', async ({ loginPage }) => {
       await expect(loginPage.title).toHaveText('Login to TechMart');
       await expect(loginPage.emailInput).toBeVisible();
       await expect(loginPage.passwordInput).toBeVisible();
       await expect(loginPage.submitBtn).toBeVisible();
     });
 
-    test('should show error for invalid credentials', async ({ page }) => {
+    test('should show error for invalid credentials', async ({ loginPage }) => {
       // Fill in invalid credentials
-      const loginPage = new LoginPage(page);
       await loginPage.emailInput.fill('wrong@email.com');
       await loginPage.passwordInput.fill('wrongpassword');
       
@@ -39,9 +34,8 @@ test.describe('Authentication', () => {
       await expect(loginPage.errorMessage).toContainText('Invalid credentials');
     });
 
-    test('should login successfully with valid credentials', async ({ page }) => {
+    test('should login successfully with valid credentials', async ({ page, loginPage }) => {
       // Fill in valid demo credentials
-      const loginPage = new LoginPage(page);
       await loginPage.emailInput.fill('demo@techmart.com');
       await loginPage.passwordInput.fill('demo123');
       
@@ -55,9 +49,8 @@ test.describe('Authentication', () => {
       await page.waitForURL('/');
     });
 
-    test('should show validation for empty fields', async ({ page }) => {
+    test('should show validation for empty fields', async ({ loginPage }) => {
       // Try to submit empty form
-      const loginPage = new LoginPage(page);
       await loginPage.submitBtn.click();
       
       // Check that email field shows validation error (browser built-in)
@@ -65,16 +58,14 @@ test.describe('Authentication', () => {
       expect(isInvalid).toBe(true);
     });
 
-    test('should have link to registration page', async ({ page }) => {
-      const loginPage = new LoginPage(page);
+    test('should have link to registration page', async ({ page, loginPage }) => {
       await expect(loginPage.signUpLink).toBeVisible();
       
       await loginPage.signUpLink.click();
       await expect(page).toHaveURL('/register.html');
     });
 
-    test('should display demo credentials', async ({ page }) => {
-      const loginPage = new LoginPage(page);
+    test('should display demo credentials', async ({ loginPage }) => {
       await expect(loginPage.demoCredentials).toBeVisible();
       await expect(loginPage.demoCredentials).toContainText('demo@techmart.com');
       await expect(loginPage.demoCredentials).toContainText('demo123');
@@ -84,13 +75,11 @@ test.describe('Authentication', () => {
 
   test.describe('Registration', () => {
     
-    test.beforeEach(async ({ page }) => {
-      const registerPage = new RegisterPage(page);
+    test.beforeEach(async ({ registerPage }) => {
       await registerPage.goto();
     });
 
-    test('should display registration form', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
+    test('should display registration form', async ({ registerPage }) => {
       await expect(registerPage.title).toHaveText('Create Your Account');
       await expect(registerPage.nameInput).toBeVisible();
       await expect(registerPage.emailInput).toBeVisible();
@@ -98,8 +87,7 @@ test.describe('Authentication', () => {
       await expect(registerPage.confirmPasswordInput).toBeVisible();
     });
 
-    test('should show error for mismatched passwords', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
+    test('should show error for mismatched passwords', async ({ registerPage }) => {
       await registerPage.nameInput.fill('Test User');
       await registerPage.emailInput.fill('test@example.com');
       await registerPage.passwordInput.fill('password123');
@@ -111,9 +99,8 @@ test.describe('Authentication', () => {
       await expect(registerPage.errorMessage).toContainText('Passwords do not match');
     });
 
-    test('should register new user successfully', async ({ page }) => {
+    test('should register new user successfully', async ({ page, registerPage }) => {
       // Generate unique email to avoid conflicts
-      const registerPage = new RegisterPage(page);
       const uniqueEmail = `test${Date.now()}@example.com`;
       
       await registerPage.nameInput.fill('New User');
@@ -130,10 +117,8 @@ test.describe('Authentication', () => {
       await page.waitForURL('/');
     });
 
-    test('should have link to login page', async ({ page }) => {
-      const registerPage = new RegisterPage(page);
+    test('should have link to login page', async ({ page, registerPage }) => {
       await expect(registerPage.loginLink).toBeVisible();
-      
       await registerPage.loginLink.click();
       await expect(page).toHaveURL('/login.html');
     });
@@ -142,16 +127,14 @@ test.describe('Authentication', () => {
 
   test.describe('Logout', () => {
     
-    test('should logout successfully', async ({ page }) => {
+    test('should logout successfully', async ({ page, loginPage, homePage }) => {
       // Login first
-      const loginPage = new LoginPage(page);
       await loginPage.goto();
       await loginPage.emailInput.fill('demo@techmart.com');
       await loginPage.passwordInput.fill('demo123');
       await loginPage.submitBtn.click();
       
       // Wait for redirect and user to be logged in
-      const homePage = new HomePage(page)
       await page.waitForURL('/');
       // Verify logged in state
       await expect(homePage.authArea).toContainText('Hi, Demo User');
