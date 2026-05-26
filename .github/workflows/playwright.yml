@@ -31,13 +31,6 @@ jobs:
         run: npx playwright install --with-deps chromium
         working-directory: tests/traditional
 
-      - name: Start TechMart server
-        run: node server.js &
-        working-directory: sample-app
-
-      - name: Wait for server
-        run: sleep 3
-
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: tests/traditional
